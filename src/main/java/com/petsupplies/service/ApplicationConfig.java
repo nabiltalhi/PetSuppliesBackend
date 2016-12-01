@@ -29,8 +29,11 @@ public class ApplicationConfig extends Application {
      * If required, comment out calling this method in getClasses().
      */
     private void addRestResourceClasses(Set<Class<?>> resources) {
+        resources.add(com.petsupplies.service.AccountFacadeREST.class);
+        resources.add(com.petsupplies.service.CategoryFacadeREST.class);
         resources.add(com.petsupplies.service.NewCrossOriginResourceSharingFilter.class);
         resources.add(com.petsupplies.service.ProductFacadeREST.class);
+        resources.add(com.petsupplies.service.SessionFacadeREST.class);
     }
     
 }

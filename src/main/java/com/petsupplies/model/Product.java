@@ -10,6 +10,8 @@ import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -29,9 +31,16 @@ import javax.xml.bind.annotation.XmlRootElement;
     , @NamedQuery(name = "Product.findById", query = "SELECT p FROM Product p WHERE p.id = :id")
     , @NamedQuery(name = "Product.findByName", query = "SELECT p FROM Product p WHERE p.name = :name")
     , @NamedQuery(name = "Product.findByDescription", query = "SELECT p FROM Product p WHERE p.description = :description")
-    , @NamedQuery(name = "Product.findByPrice", query = "SELECT p FROM Product p WHERE p.price = :price")})
+    , @NamedQuery(name = "Product.findByPrice", query = "SELECT p FROM Product p WHERE p.price = :price")
+    , @NamedQuery(name = "Product.findByStock", query = "SELECT p FROM Product p WHERE p.stock = :stock")
+    , @NamedQuery(name = "Product.findByCategory", query = "SELECT p FROM Product p WHERE p.category = :category")})
 public class Product implements Serializable {
 
+    @JoinColumn(name = "category", referencedColumnName = "id")
+    @ManyToOne
+    private Category category;
+
+    
     private static final long serialVersionUID = 1L;
     @Id
     @Basic(optional = false)
@@ -47,9 +56,9 @@ public class Product implements Serializable {
     // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
     @Column(name = "price")
     private Double price;
+    @NotNull
     @Column(name = "stock")
     private Integer stock;
-
 
     public Product() {
     }
@@ -90,6 +99,14 @@ public class Product implements Serializable {
         this.price = price;
     }
 
+    public Integer getStock() {
+        return stock;
+    }
+
+    public void setStock(Integer stock) {
+        this.stock = stock;
+    }
+
     @Override
     public int hashCode() {
         int hash = 0;
@@ -115,12 +132,13 @@ public class Product implements Serializable {
         return "com.petsupplies.model.Product[ id=" + id + " ]";
     }
 
-    public Integer getStock() {
-        return stock;
+    public Category getCategory() {
+        return category;
     }
 
-    public void setStock(Integer stock) {
-        this.stock = stock;
+    public void setCategory(Category category) {
+        this.category = category;
     }
+
     
 }

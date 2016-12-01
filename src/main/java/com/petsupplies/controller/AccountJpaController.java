@@ -6,27 +6,25 @@
 package com.petsupplies.controller;
 
 import com.petsupplies.controller.exceptions.NonexistentEntityException;
-import com.petsupplies.controller.exceptions.PreexistingEntityException;
 import com.petsupplies.controller.exceptions.RollbackFailureException;
+import com.petsupplies.model.Account;
 import java.io.Serializable;
+import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import com.petsupplies.model.Category;
-import com.petsupplies.model.Product;
-import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.transaction.UserTransaction;
 
 /**
  *
  * @author ntalhi
  */
-public class ProductJpaController implements Serializable {
+public class AccountJpaController implements Serializable {
 
-    public ProductJpaController(UserTransaction utx, EntityManagerFactory emf) {
+    public AccountJpaController(UserTransaction utx, EntityManagerFactory emf) {
         this.utx = utx;
         this.emf = emf;
     }
@@ -37,30 +35,18 @@ public class ProductJpaController implements Serializable {
         return emf.createEntityManager();
     }
 
-    public void create(Product product) throws PreexistingEntityException, RollbackFailureException, Exception {
+    public void create(Account account) throws RollbackFailureException, Exception {
         EntityManager em = null;
         try {
             utx.begin();
             em = getEntityManager();
-            Category categoryId = product.getCategory();
-            if (categoryId != null) {
-                categoryId = em.getReference(categoryId.getClass(), categoryId.getId());
-                product.setCategory(categoryId);
-            }
-            em.persist(product);
-            if (categoryId != null) {
-                categoryId.getProductCollection().add(product);
-                categoryId = em.merge(categoryId);
-            }
+            em.persist(account);
             utx.commit();
         } catch (Exception ex) {
             try {
                 utx.rollback();
             } catch (Exception re) {
                 throw new RollbackFailureException("An error occurred attempting to roll back the transaction.", re);
-            }
-            if (findProduct(product.getId()) != null) {
-                throw new PreexistingEntityException("Product " + product + " already exists.", ex);
             }
             throw ex;
         } finally {
@@ -70,27 +56,12 @@ public class ProductJpaController implements Serializable {
         }
     }
 
-    public void edit(Product product) throws NonexistentEntityException, RollbackFailureException, Exception {
+    public void edit(Account account) throws NonexistentEntityException, RollbackFailureException, Exception {
         EntityManager em = null;
         try {
             utx.begin();
             em = getEntityManager();
-            Product persistentProduct = em.find(Product.class, product.getId());
-            Category categoryIdOld = persistentProduct.getCategory();
-            Category categoryIdNew = product.getCategory();
-            if (categoryIdNew != null) {
-                categoryIdNew = em.getReference(categoryIdNew.getClass(), categoryIdNew.getId());
-                product.setCategory(categoryIdNew);
-            }
-            product = em.merge(product);
-            if (categoryIdOld != null && !categoryIdOld.equals(categoryIdNew)) {
-                categoryIdOld.getProductCollection().remove(product);
-                categoryIdOld = em.merge(categoryIdOld);
-            }
-            if (categoryIdNew != null && !categoryIdNew.equals(categoryIdOld)) {
-                categoryIdNew.getProductCollection().add(product);
-                categoryIdNew = em.merge(categoryIdNew);
-            }
+            account = em.merge(account);
             utx.commit();
         } catch (Exception ex) {
             try {
@@ -100,9 +71,9 @@ public class ProductJpaController implements Serializable {
             }
             String msg = ex.getLocalizedMessage();
             if (msg == null || msg.length() == 0) {
-                Integer id = product.getId();
-                if (findProduct(id) == null) {
-                    throw new NonexistentEntityException("The product with id " + id + " no longer exists.");
+                Integer id = account.getId();
+                if (findAccount(id) == null) {
+                    throw new NonexistentEntityException("The account with id " + id + " no longer exists.");
                 }
             }
             throw ex;
@@ -118,19 +89,14 @@ public class ProductJpaController implements Serializable {
         try {
             utx.begin();
             em = getEntityManager();
-            Product product;
+            Account account;
             try {
-                product = em.getReference(Product.class, id);
-                product.getId();
+                account = em.getReference(Account.class, id);
+                account.getId();
             } catch (EntityNotFoundException enfe) {
-                throw new NonexistentEntityException("The product with id " + id + " no longer exists.", enfe);
+                throw new NonexistentEntityException("The account with id " + id + " no longer exists.", enfe);
             }
-            Category categoryId = product.getCategory();
-            if (categoryId != null) {
-                categoryId.getProductCollection().remove(product);
-                categoryId = em.merge(categoryId);
-            }
-            em.remove(product);
+            em.remove(account);
             utx.commit();
         } catch (Exception ex) {
             try {
@@ -146,19 +112,19 @@ public class ProductJpaController implements Serializable {
         }
     }
 
-    public List<Product> findProductEntities() {
-        return findProductEntities(true, -1, -1);
+    public List<Account> findAccountEntities() {
+        return findAccountEntities(true, -1, -1);
     }
 
-    public List<Product> findProductEntities(int maxResults, int firstResult) {
-        return findProductEntities(false, maxResults, firstResult);
+    public List<Account> findAccountEntities(int maxResults, int firstResult) {
+        return findAccountEntities(false, maxResults, firstResult);
     }
 
-    private List<Product> findProductEntities(boolean all, int maxResults, int firstResult) {
+    private List<Account> findAccountEntities(boolean all, int maxResults, int firstResult) {
         EntityManager em = getEntityManager();
         try {
             CriteriaQuery cq = em.getCriteriaBuilder().createQuery();
-            cq.select(cq.from(Product.class));
+            cq.select(cq.from(Account.class));
             Query q = em.createQuery(cq);
             if (!all) {
                 q.setMaxResults(maxResults);
@@ -170,20 +136,20 @@ public class ProductJpaController implements Serializable {
         }
     }
 
-    public Product findProduct(Integer id) {
+    public Account findAccount(Integer id) {
         EntityManager em = getEntityManager();
         try {
-            return em.find(Product.class, id);
+            return em.find(Account.class, id);
         } finally {
             em.close();
         }
     }
 
-    public int getProductCount() {
+    public int getAccountCount() {
         EntityManager em = getEntityManager();
         try {
             CriteriaQuery cq = em.getCriteriaBuilder().createQuery();
-            Root<Product> rt = cq.from(Product.class);
+            Root<Account> rt = cq.from(Account.class);
             cq.select(em.getCriteriaBuilder().count(rt));
             Query q = em.createQuery(cq);
             return ((Long) q.getSingleResult()).intValue();

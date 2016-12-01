@@ -5,13 +5,11 @@
  */
 package com.petsupplies.service;
 
-import com.petsupplies.controller.ProductJpaController;
-import com.petsupplies.model.Product;
+import com.petsupplies.model.Category;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -27,27 +25,27 @@ import javax.ws.rs.core.MediaType;
  * @author ntalhi
  */
 @Stateless
-@Path("product")
-public class ProductFacadeREST extends AbstractFacade<Product> {
+@Path("category")
+public class CategoryFacadeREST extends AbstractFacade<Category> {
 
     @PersistenceContext(unitName = "com.petsupplies_PetSuppliesBackend_war_1.0-SNAPSHOTPU")
     private EntityManager em;
 
-    public ProductFacadeREST() {
-        super(Product.class);
+    public CategoryFacadeREST() {
+        super(Category.class);
     }
 
     @POST
     @Override
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public void create(Product entity) {
+    public void create(Category entity) {
         super.create(entity);
     }
 
     @PUT
     @Path("{id}")
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public void edit(@PathParam("id") Integer id, Product entity) {
+    public void edit(@PathParam("id") Integer id, Category entity) {
         super.edit(entity);
     }
 
@@ -60,27 +58,22 @@ public class ProductFacadeREST extends AbstractFacade<Product> {
     @GET
     @Path("{id}")
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public Product find(@PathParam("id") Integer id) {
+    public Category find(@PathParam("id") Integer id) {
         return super.find(id);
     }
 
     @GET
     @Override
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public List<Product> findAll() {
+    public List<Category> findAll() {
         return super.findAll();
     }
 
     @GET
-    @Path("/category/{category}")
+    @Path("{from}/{to}")
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public List<Product> findByCategory(@PathParam("category") String category) {
-        TypedQuery<Product> query = em.createNamedQuery("Product.findByCategory", Product.class);
-        System.out.println(query);
-    List<Product> results = query.setParameter("category", category).getResultList();
-    return results;
-//return super.findByCategory(category);
-        
+    public List<Category> findRange(@PathParam("from") Integer from, @PathParam("to") Integer to) {
+        return super.findRange(new int[]{from, to});
     }
 
     @GET
